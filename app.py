@@ -5,7 +5,7 @@ import os
 port = int(os.environ.get('PORT', 5000))
 app = Flask(__name__)
 app.secret_key = 'duty-management-secret-key'
-
+#test
 # 邀请码
 INVITE_CODE = 'zkqy-zz@2026-start'
 
