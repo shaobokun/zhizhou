@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="{{ url_for('role') }}" class="nav-back">← 返回选择</a>
+<h1>扣分信息填写</h1>
+<p class="subtitle">请填写完整的扣分信息</p>
+
+{% if success %}
+<div class="success-msg">提交成功！可继续填写下一条记录</div>
+{% endif %}
+
+<form method="POST">
+    <div class="form-group">
+        <label>所在班级</label>
+        <input type="text" name="class_name" placeholder="例如：八年级2班" required>
+    </div>
+    <div class="form-group">
+        <label>学生姓名</label>
+        <input type="text" name="student_name" placeholder="请输入学生姓名" required>
+    </div>
+    <div class="form-group">
+        <label>扣分原因</label>
+        <input type="text" name="reason" placeholder="请输入扣分原因" required>
+    </div>
+    <div class="form-group">
+        <label>扣分数</label>
+        <input type="number" name="score" placeholder="请输入扣分数" min="1" max="100" required>
+    </div>
+    <button type="submit" class="btn btn-success">提交扣分记录</button>
+</form>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 style="text-align: center;">欢迎进入系统</h1>
+<p class="subtitle" style="text-align: center;">请选择您的身份或操作</p>
+
+<div class="btn-group">
+    <a href="{{ url_for('student') }}" class="btn btn-primary">我是值周生</a>
+    <a href="{{ url_for('teacher') }}" class="btn btn-secondary">我是老师</a>
+    <a href="{{ url_for('summary') }}" class="btn btn-secondary">查看上周值周信息总表</a>
+</div>
+
+<div style="margin-top: 24px; text-align: center;">
+    <a href="{{ url_for('logout') }}" class="nav-back">退出登录</a>
+</div>
+{% endblock %}

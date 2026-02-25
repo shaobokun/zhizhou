@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="{{ url_for('role') }}" class="nav-back">← 返回选择</a>
+<h1>班级扣分查询</h1>
+<p class="subtitle">输入班级名称查看当周扣分情况</p>
+
+<form method="POST">
+    <div class="form-group" style="display: flex; gap: 10px;">
+        <input type="text" name="query_class" placeholder="输入班级名称" value="{{ query_class or '' }}" required style="flex: 1;">
+        <button type="submit" class="btn btn-primary" style="width: auto; padding: 12px 24px;">查询</button>
+    </div>
+</form>
+
+{% if query_class %}
+<div class="total-score-box">
+    <div class="total-label">班级当前得分</div>
+    <div class="total-score">{{ score }}</div>
+</div>
+
+<h3 style="margin-bottom: 12px; font-size: 15px;">扣分明细</h3>
+
+{% if records %}
+    {% for record in records %}
+    <div class="record-card">
+        <p><strong>{{ record.student_name }}</strong> <span class="score-badge">-{{ record.score }}分</span></p>
+        <p style="color: #666;">原因：{{ record.reason }}</p>
+        <p style="color: #999; font-size: 12px;">时间：{{ record.time }}</p>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">该班级本周暂无扣分记录</div>
+{% endif %}
+{% endif %}
+{% endblock %}
