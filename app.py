@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.secret_key = 'duty-management-secret-key'
 
 # 邀请码
-INVITE_CODE = '123456'
+INVITE_CODE = 'zkqy-zz@2026-start'
 
 # 数据库配置
 DATABASE = 'duty_system.db'
