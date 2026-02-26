@@ -25,17 +25,29 @@ def init_db():
     
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS deductions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            class_name TEXT NOT NULL,
-            student_name TEXT NOT NULL,
-            reason TEXT NOT NULL,
-            score INTEGER NOT NULL,
-            week TEXT NOT NULL,
-            time TEXT NOT NULL
-        )
-    ''')
+    
+    # 检查是否需要添加 weekday 列
+    cursor.execute("PRAGMA table_info(deductions)")
+    columns = [col[1] for col in cursor.fetchall()]
+    
+    if 'weekday' not in columns:
+        # 如果表不存在，创建新表
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS deductions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                class_name TEXT NOT NULL,
+                student_name TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                score INTEGER NOT NULL,
+                week TEXT NOT NULL,
+                weekday TEXT NOT NULL,
+                time TEXT NOT NULL
+            )
+        ''')
+        # 如果表存在但没有 weekday 列，添加它
+        if columns and 'weekday' not in columns:
+            cursor.execute('ALTER TABLE deductions ADD COLUMN weekday TEXT NOT NULL DEFAULT "周一"')
+    
     conn.commit()
     conn.close()
 
@@ -129,6 +141,7 @@ def student():
         student_name = request.form.get('student_name', '').strip()
         reason = request.form.get('reason', '').strip()
         score = request.form.get('score', '0').strip()
+        weekday = request.form.get('weekday', '周一').strip()
         
         if class_name and student_name and reason and score:
             try:
@@ -137,10 +150,10 @@ def student():
                     conn = get_db()
                     cursor = conn.cursor()
                     cursor.execute('''
-                        INSERT INTO deductions (class_name, student_name, reason, score, week, time)
-                        VALUES (?, ?, ?, ?, ?, ?)
+                        INSERT INTO deductions (class_name, student_name, reason, score, week, weekday, time)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
                     ''', (class_name, student_name, reason, score_val, 
-                          get_week_key(), datetime.now().strftime('%Y-%m-%d %H:%M')))
+                          get_week_key(), weekday, datetime.now().strftime('%Y-%m-%d %H:%M')))
                     conn.commit()
                     conn.close()
                     success = True

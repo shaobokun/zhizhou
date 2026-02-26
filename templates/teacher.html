@@ -1,34 +1,204 @@
 {% extends "base.html" %}
 {% block content %}
 <a href="{{ url_for('role') }}" class="nav-back">← 返回选择</a>
-<h1>班级扣分查询</h1>
-<p class="subtitle">输入班级名称查看当周扣分情况</p>
+<h1>班级查询</h1>
+<p class="subtitle">老师查看本班扣分情况</p>
 
-<form method="POST">
-    <div class="form-group" style="display: flex; gap: 10px;">
-        <input type="text" name="query_class" placeholder="输入班级名称" value="{{ query_class or '' }}" required style="flex: 1;">
-        <button type="submit" class="btn btn-primary" style="width: auto; padding: 12px 24px;">查询</button>
+<!-- 周次选择器 -->
+<div class="week-selector">
+    <label>选择周次：</label>
+    <select id="weekSelect" onchange="updateForm()">
+        <option value="">本周</option>
+        <option value="last">上周</option>
+        <option value="last2">上上周</option>
+    </select>
+</div>
+
+<form method="POST" class="form-card" id="queryForm">
+    <input type="hidden" name="week_mode" id="weekMode" value="">
+    <div class="form-group">
+        <label>输入班级名称</label>
+        <input type="text" name="query_class" value="{{ query_class or '' }}" placeholder="如：七年级1班" required>
     </div>
+    <button type="submit" class="btn-primary">查询</button>
 </form>
 
 {% if query_class %}
-<div class="total-score-box">
-    <div class="total-label">班级当前得分</div>
-    <div class="total-score">{{ score }}</div>
-</div>
-
-<h3 style="margin-bottom: 12px; font-size: 15px;">扣分明细</h3>
-
-{% if records %}
-    {% for record in records %}
-    <div class="record-card">
-        <p><strong>{{ record.student_name }}</strong> <span class="score-badge">-{{ record.score }}分</span></p>
-        <p style="color: #666;">原因：{{ record.reason }}</p>
-        <p style="color: #999; font-size: 12px;">时间：{{ record.time }}</p>
+<div class="result-card">
+    <div class="score-display">
+        <span class="score-label">{{ query_class }} {{ week_display }}得分</span>
+        <span class="score-value">{{ score }}</span>
     </div>
-    {% endfor %}
-{% else %}
-    <div class="empty-state">该班级本周暂无扣分记录</div>
+    
+    {% if records %}
+    <h3>扣分记录</h3>
+    <div class="records-list">
+        {% for record in records %}
+        <div class="record-item">
+            <div class="record-header">
+                <span class="student-name">{{ record.student_name }}</span>
+                <span class="score-badge">-{{ record.score }}分</span>
+            </div>
+            <div class="record-info">
+                <span class="weekday-tag">{{ record.weekday }}</span>
+                <span class="reason">{{ record.reason }}</span>
+            </div>
+            <div class="record-time">{{ record.time }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-record">🎉 {{ week_display }}暂无扣分记录！</div>
+    {% endif %}
+</div>
 {% endif %}
-{% endif %}
+
+<script>
+function updateForm() {
+    var select = document.getElementById('weekSelect');
+    var hiddenInput = document.getElementById('weekMode');
+    hiddenInput.value = select.value;
+}
+
+// 保持选择状态
+var weekMode = "{{ week_mode if week_mode else '' }}";
+if (weekMode) {
+    document.getElementById('weekSelect').value = weekMode;
+}
+</script>
+
+
+<style>
+.week-selector {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.week-selector label {
+    font-size: 14px;
+    color: #333;
+}
+.week-selector select {
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+.form-card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+.form-group {
+    margin-bottom: 16px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.result-card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.score-display {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+.score-label {
+    display: block;
+    color: rgba(255,255,255,0.9);
+    font-size: 14px;
+}
+.score-value {
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+}
+.records-list {
+    margin-top: 16px;
+}
+.record-item {
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+.record-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.student-name {
+    font-weight: 500;
+    font-size: 16px;
+}
+.score-badge {
+    background: #dc3545;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+.record-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.weekday-tag {
+    background: #667eea;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+.reason {
+    color: #666;
+}
+.record-time {
+    font-size: 12px;
+    color: #999;
+}
+.no-record {
+    text-align: center;
+    padding: 20px;
+    color: #28a745;
+    font-size: 18px;
+}
+</style>
 {% endblock %}

@@ -28,8 +28,15 @@
         </div>
         {% for record in data.records %}
         <div class="record-card">
-            <p><strong>{{ record.student_name }}</strong> <span class="score-badge">-{{ record.score }}分</span></p>
-            <p style="color: #666;">原因：{{ record.reason }}</p>
+            <div class="record-top">
+                <strong>{{ record.student_name }}</strong>
+                <span class="score-badge">-{{ record.score }}分</span>
+            </div>
+            <div class="record-detail">
+                <span class="weekday-tag">{{ record.weekday }}</span>
+                <span class="reason-text">{{ record.reason }}</span>
+            </div>
+            <div class="record-time">{{ record.time }}</div>
         </div>
         {% endfor %}
     </div>
@@ -60,17 +67,78 @@
     border-radius: 8px;
     font-size: 14px;
 }
-.week-selector select:focus {
-    outline: none;
-    border-color: #667eea;
-}
 .back-current {
     color: #667eea;
     text-decoration: none;
     font-size: 14px;
 }
-.back-current:hover {
-    text-decoration: underline;
+.class-section {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.class-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #667eea;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.class-score-inline {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+.record-card {
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+.record-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.score-badge {
+    background: #dc3545;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+.record-detail {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.weekday-tag {
+    background: #667eea;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+.reason-text {
+    color: #666;
+}
+.record-time {
+    font-size: 12px;
+    color: #999;
+}
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #999;
 }
 </style>
 {% endblock %}

@@ -1,30 +1,100 @@
 {% extends "base.html" %}
 {% block content %}
 <a href="{{ url_for('role') }}" class="nav-back">← 返回选择</a>
-<h1>扣分信息填写</h1>
-<p class="subtitle">请填写完整的扣分信息</p>
+<h1>扣分填写</h1>
+<p class="subtitle">值周生登记班级扣分情况</p>
 
 {% if success %}
-<div class="success-msg">提交成功！可继续填写下一条记录</div>
+<div class="success-message">
+    ✅ 扣分记录已提交成功！
+</div>
 {% endif %}
 
-<form method="POST">
+<form method="POST" class="form-card">
     <div class="form-group">
-        <label>所在班级</label>
-        <input type="text" name="class_name" placeholder="例如：八年级2班" required>
+        <label>班级</label>
+        <input type="text" name="class_name" placeholder="如：七年级1班" required>
     </div>
+    
     <div class="form-group">
-        <label>学生姓名/外貌/座位</label>
-        <input type="text" name="student_name" placeholder="请输入学生姓名" required>
+        <label>学生姓名</label>
+        <input type="text" name="student_name" placeholder="扣分学生姓名" required>
     </div>
+    
     <div class="form-group">
         <label>扣分原因</label>
-        <input type="text" name="reason" placeholder="请输入扣分原因" required>
+        <input type="text" name="reason" placeholder="如：上课讲话" required>
     </div>
+    
     <div class="form-group">
-        <label>扣分数</label>
-        <input type="number" name="score" placeholder="请输入扣分数" min="1" max="100" required>
+        <label>扣分</label>
+        <input type="number" name="score" min="1" max="100" placeholder="输入分数" required>
     </div>
-    <button type="submit" class="btn btn-success">提交扣分记录</button>
+    
+    <div class="form-group">
+        <label>扣分发生在</label>
+        <select name="weekday" required>
+            <option value="周一">周一</option>
+            <option value="周二">周二</option>
+            <option value="周三">周三</option>
+            <option value="周四">周四</option>
+            <option value="周五">周五</option>
+        </select>
+    </div>
+    
+    <button type="submit" class="btn-primary">提交扣分</button>
 </form>
+
+<style>
+.form-card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.form-group {
+    margin-bottom: 16px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #333;
+}
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.btn-primary:hover {
+    opacity: 0.9;
+}
+.success-message {
+    background: #d4edda;
+    color: #155724;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+</style>
 {% endblock %}
