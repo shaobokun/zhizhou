@@ -2,40 +2,42 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from datetime import datetime
 import sqlite3
 import os
+
 port = int(os.environ.get('PORT', 5000))
 app = Flask(__name__)
 app.secret_key = 'duty-management-secret-key'
-#test
+
 # 邀请码
 INVITE_CODE = 'zkqy-zz@2026-start'
 
 # 数据库配置
-DATABASE = 'duty_system.db'
+DATABASE = '/app/data/duty_system.db'
 
 def get_db():
     """获取数据库连接"""
     conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row  # 以字典方式访问
+    conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
     """初始化数据库表"""
-    if not os.path.exists(DATABASE):
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE deductions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                class_name TEXT NOT NULL,
-                student_name TEXT NOT NULL,
-                reason TEXT NOT NULL,
-                score INTEGER NOT NULL,
-                week TEXT NOT NULL,
-                time TEXT NOT NULL
-            )
-        ''')
-        conn.commit()
-        conn.close()
+    os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS deductions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            class_name TEXT NOT NULL,
+            student_name TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            score INTEGER NOT NULL,
+            week TEXT NOT NULL,
+            time TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
 # 应用启动时初始化数据库
 init_db()
@@ -48,6 +50,10 @@ def get_week_key():
 def get_class_score(class_name):
     """计算班级当前周的总分"""
     week_key = get_week_key()
+    return get_class_score_by_week(class_name, week_key)
+
+def get_class_score_by_week(class_name, week_key):
+    """计算指定周班级得分"""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
@@ -60,8 +66,12 @@ def get_class_score(class_name):
     return max(0, 100 - total_deduction)
 
 def get_all_records():
-    """获取所有记录，按班级分组"""
+    """获取当前周所有记录"""
     week_key = get_week_key()
+    return get_all_records_by_week(week_key)
+
+def get_all_records_by_week(week_key):
+    """获取指定周的记录，按班级分组"""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
@@ -76,8 +86,17 @@ def get_all_records():
         if cn not in class_data:
             class_data[cn] = {'records': [], 'total_score': 100}
         class_data[cn]['records'].append(dict(row))
-        class_data[cn]['total_score'] = get_class_score(cn)
+        class_data[cn]['total_score'] = get_class_score_by_week(cn, week_key)
     return class_data
+
+def get_all_weeks():
+    """获取数据库里所有有记录的周次"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT DISTINCT week FROM deductions ORDER BY week DESC')
+    rows = cursor.fetchall()
+    conn.close()
+    return [row[0] for row in rows]
 
 # 主页 - 邀请码输入
 @app.route('/', methods=['GET', 'POST'])
@@ -162,18 +181,28 @@ def teacher():
                           records=class_records, 
                           score=class_score)
 
-# 总表查看
+# 总表查看（支持历史周次）
 @app.route('/summary')
-def summary():
+@app.route('/summary/<week_key>')
+def summary(week_key=None):
     if not session.get('verified'):
         return redirect(url_for('index'))
     
-    all_data = get_all_records()
+    if week_key is None:
+        week_key = get_week_key()
+    
+    all_data = get_all_records_by_week(week_key)
     sorted_classes = sorted(all_data.keys())
+    
+    weeks = get_all_weeks()
+    current_week = get_week_key()
     
     return render_template('summary.html', 
                           all_data=all_data, 
-                          sorted_classes=sorted_classes)
+                          sorted_classes=sorted_classes,
+                          weeks=weeks,
+                          current_week=current_week,
+                          viewing_week=week_key)
 
 # 退出
 @app.route('/logout')

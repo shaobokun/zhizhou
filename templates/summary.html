@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="{{ url_for('role') }}" class="nav-back">← 返回选择</a>
+<h1>值周信息总表</h1>
+<p class="subtitle">按班级查看所有扣分记录</p>
+
+<!-- 周次选择器 -->
+<div class="week-selector">
+    <label>选择周次：</label>
+    <select onchange="location.href='/summary/'+this.value">
+        <option value="" {% if viewing_week == current_week %}selected{% endif %}>本周 ({{ current_week }})</option>
+        {% for w in weeks %}
+        <option value="{{ w }}" {% if w == viewing_week and w != current_week %}selected{% endif %}>{{ w }}</option>
+        {% endfor %}
+    </select>
+    {% if viewing_week != current_week %}
+    <a href="/summary" class="back-current">返回本周</a>
+    {% endif %}
+</div>
+
+{% if sorted_classes %}
+    {% for class_name in sorted_classes %}
+    {% set data = all_data[class_name] %}
+    <div class="class-section">
+        <div class="class-title">
+            {{ class_name }}
+            <span class="class-score-inline">得分: {{ data.total_score }}</span>
+        </div>
+        {% for record in data.records %}
+        <div class="record-card">
+            <p><strong>{{ record.student_name }}</strong> <span class="score-badge">-{{ record.score }}分</span></p>
+            <p style="color: #666;">原因：{{ record.reason }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">该周暂无扣分记录</div>
+{% endif %}
+
+<style>
+.week-selector {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.week-selector label {
+    font-size: 14px;
+    color: #333;
+}
+.week-selector select {
+    width: auto;
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+.week-selector select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+.back-current {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+}
+.back-current:hover {
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
