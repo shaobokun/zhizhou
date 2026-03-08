@@ -222,6 +222,77 @@ def summary(week_key=None):
 def logout():
     session.pop('verified', None)
     return redirect(url_for('index'))
+# 获取本周所有记录（供值周生管理）
+@app.route('/api/records')
+def api_records():
+    if not session.get('verified'):
+        return {'error': '未授权'}, 401
+    
+    week_key = get_week_key()
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM deductions WHERE week = ? ORDER BY time DESC
+    ''', (week_key,))
+    rows = cursor.fetchall()
+    conn.close()
+    
+    return {'records': [dict(row) for row in rows]}
+
+# 删除记录
+@app.route('/delete/<int:record_id>', methods=['POST'])
+def delete_record(record_id):
+    if not session.get('verified'):
+        return redirect(url_for('index'))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM deductions WHERE id = ?', (record_id,))
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for('student'))
+
+# 修改记录
+@app.route('/edit/<int:record_id>', methods=['GET', 'POST'])
+def edit_record(record_id):
+    if not session.get('verified'):
+        return redirect(url_for('index'))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if request.method == 'POST':
+        class_name = request.form.get('class_name', '').strip()
+        student_name = request.form.get('student_name', '').strip()
+        reason = request.form.get('reason', '').strip()
+        score = request.form.get('score', '0').strip()
+        weekday = request.form.get('weekday', '周一').strip()
+        
+        try:
+            score_val = int(score)
+            cursor.execute('''
+                UPDATE deductions 
+                SET class_name = ?, student_name = ?, reason = ?, score = ?, weekday = ?
+                WHERE id = ?
+            ''', (class_name, student_name, reason, score_val, weekday, record_id))
+            conn.commit()
+        except ValueError:
+            pass
+        
+        conn.close()
+        return redirect(url_for('student'))
+    
+    # GET 请求，获取记录信息
+    cursor.execute('SELECT * FROM deductions WHERE id = ?', (record_id,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row:
+        return redirect(url_for('student'))
+    
+    return render_template('edit.html', record=dict(row))
+
 
 if __name__ == '__main__':
     init_db()

@@ -2,17 +2,11 @@
 {% block content %}
 <a href="{{ url_for('role') }}" class="nav-back">← 返回选择</a>
 <h1>扣分填写</h1>
-<p class="subtitle">值周生登记班级扣分情况</p>
-
-{% if success %}
-<div class="success-message">
-    ✅ 扣分记录已提交成功！
-</div>
-{% endif %}
+<p class="subtitle">值周生录入扣分信息</p>
 
 <form method="POST" class="form-card">
     <div class="form-group">
-        <label>班级</label>
+        <label>班级名称</label>
         <input type="text" name="class_name" placeholder="如：七年级1班" required>
     </div>
     
@@ -23,17 +17,17 @@
     
     <div class="form-group">
         <label>扣分原因</label>
-        <input type="text" name="reason" placeholder="如：上课讲话" required>
+        <input type="text" name="reason" placeholder="如：未穿校服" required>
     </div>
     
     <div class="form-group">
         <label>扣分</label>
-        <input type="number" name="score" min="1" max="100" placeholder="输入分数" required>
+        <input type="number" name="score" placeholder="输入分数" min="1" required>
     </div>
     
     <div class="form-group">
-        <label>扣分发生在</label>
-        <select name="weekday" required>
+        <label>星期</label>
+        <select name="weekday">
             <option value="周一">周一</option>
             <option value="周二">周二</option>
             <option value="周三">周三</option>
@@ -42,8 +36,58 @@
         </select>
     </div>
     
-    <button type="submit" class="btn-primary">提交扣分</button>
+    <button type="submit" class="btn-primary">提交</button>
 </form>
+
+{% if success %}
+<div class="success-msg">✅ 提交成功！</div>
+{% endif %}
+
+<!-- 本周记录列表 -->
+<div class="records-section">
+    <h3>本周填写记录</h3>
+    <div id="recordsList">加载中...</div>
+</div>
+
+<script>
+function loadRecords() {
+    fetch('/api/records')
+        .then(res => res.json())
+        .then(data => {
+            var list = document.getElementById('recordsList');
+            if (data.records && data.records.length > 0) {
+                var html = '';
+                data.records.forEach(function(r) {
+                    html += '<div class="record-item">';
+                    html += '<div class="record-main">';
+                    html += '<span class="record-class">' + r.class_name + '</span>';
+                    html += '<span class="record-name">' + r.student_name + '</span>';
+                    html += '<span class="record-score">-' + r.score + '分</span>';
+                    html += '</div>';
+                    html += '<div class="record-detail">';
+                    html += '<span class="record-weekday">' + r.weekday + '</span>';
+                    html += '<span class="record-reason">' + r.reason + '</span>';
+                    html += '</div>';
+                    html += '<div class="record-actions">';
+                    html += '<a href="/edit/' + r.id + '" class="btn-edit">修改</a>';
+                    html += '<form method="POST" action="/delete/' + r.id + '" style="display:inline">';
+                    html += '<button type="submit" class="btn-delete" onclick="return confirm(\'确定删除？\')">删除</button>';
+                    html += '</form>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+                list.innerHTML = html;
+            } else {
+                list.innerHTML = '<div class="no-record">暂无记录</div>';
+            }
+        })
+        .catch(function() {
+            document.getElementById('recordsList').innerHTML = '<div class="error">加载失败</div>';
+        });
+}
+
+loadRecords();
+</script>
 
 <style>
 .form-card {
@@ -51,6 +95,7 @@
     padding: 24px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
 }
 .form-group {
     margin-bottom: 16px;
@@ -59,10 +104,8 @@
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
-    color: #333;
 }
-.form-group input,
-.form-group select {
+.form-group input, .form-group select {
     width: 100%;
     padding: 10px 12px;
     border: 2px solid #e0e0e0;
@@ -70,8 +113,7 @@
     font-size: 14px;
     box-sizing: border-box;
 }
-.form-group input:focus,
-.form-group select:focus {
+.form-group input:focus, .form-group select:focus {
     outline: none;
     border-color: #667eea;
 }
@@ -85,16 +127,91 @@
     font-size: 16px;
     cursor: pointer;
 }
-.btn-primary:hover {
-    opacity: 0.9;
-}
-.success-message {
+.success-msg {
     background: #d4edda;
     color: #155724;
     padding: 12px;
     border-radius: 8px;
-    margin-bottom: 16px;
     text-align: center;
+    margin-bottom: 20px;
+}
+.records-section {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.records-section h3 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+}
+.record-item {
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+.record-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.record-class {
+    font-weight: 500;
+}
+.record-name {
+    color: #666;
+}
+.record-score {
+    color: #dc3545;
+    font-weight: 500;
+}
+.record-detail {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 10px;
+}
+.record-weekday {
+    background: #667eea;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+.record-actions {
+    display: flex;
+    gap: 8px;
+}
+.btn-edit {
+    padding: 6px 12px;
+    background: #17a2b8;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+}
+.btn-delete {
+    padding: 6px 12px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.no-record {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+}
+.error {
+    text-align: center;
+    color: #dc3545;
+    padding: 20px;
 }
 </style>
 {% endblock %}
