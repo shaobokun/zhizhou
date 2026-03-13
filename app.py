@@ -176,31 +176,56 @@ def teacher():
     if not session.get('verified'):
         return redirect(url_for('index'))
     
-    query_class = None
-    class_records = []
-    class_score = 100
+    offset = request.args.get('week', '0')
+    try:
+        offset = int(offset)
+    except:
+        offset = 0
     
-    if request.method == 'POST':
-        query_class = request.form.get('query_class', '').strip()
-        if query_class:
-            week_key = get_week_key()
-            conn = get_db()
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT * FROM deductions 
-                WHERE class_name = ? AND week = ?
-                ORDER BY time
-            ''', (query_class, week_key))
-            rows = cursor.fetchall()
-            conn.close()
-            
-            class_records = [dict(row) for row in rows]
-            class_score = get_class_score(query_class)
+    selected_class = request.args.get('class', '').strip()
+    
+    if offset == 0:
+        week_name = '本周'
+    elif offset == -1:
+        week_name = '上周'
+    elif offset == -2:
+        week_name = '上上周'
+    else:
+        week_name = '第' + str(offset) + '周'
+    
+    week_key = get_week_key(offset)
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if selected_class:
+        cursor.execute('''
+            SELECT class_name, student_name, reason, score, weekday, time 
+            FROM deductions WHERE week = ? AND class_name = ?
+            ORDER BY time
+        ''', (week_key, selected_class))
+    else:
+        cursor.execute('''
+            SELECT class_name, student_name, reason, score, weekday, time 
+            FROM deductions WHERE week = ?
+            ORDER BY time
+        ''', (week_key,))
+    
+    rows = cursor.fetchall()
+    
+    total = 0
+    for r in rows:
+        total = total + r['score']
+    
+    conn.close()
     
     return render_template('teacher.html', 
-                          query_class=query_class,
-                          records=class_records, 
-                          score=class_score)
+        records=rows, 
+        week_name=week_name, 
+        offset=offset, 
+        total=total,
+        selected_class=selected_class
+    )
 
 # 总表查看（支持历史周次）
 @app.route('/summary')

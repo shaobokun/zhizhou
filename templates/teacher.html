@@ -3,13 +3,25 @@
 <a href="{{ url_for('role') }}" class="nav-back">← 返回选择</a>
 <h1>老师查询</h1>
 
-<div class="week-tabs">
-    <a href="?week=-2" class="{% if offset == -2 %}active{% endif %}">上上周</a>
-    <a href="?week=-1" class="{% if offset == -1 %}active{% endif %}">上周</a>
-    <a href="?week=0" class="{% if offset == 0 %}active{% endif %}">本周</a>
+<div class="filter-box">
+    <form method="GET" class="filter-form">
+        <div class="filter-row">
+            <label>班级：</label>
+            <input type="text" name="class" value="{{ selected_class }}" placeholder="输入班级名称" autocomplete="off">
+        </div>
+        <div class="filter-row">
+            <label>周次：</label>
+            <select name="week">
+                <option value="0" {% if offset == 0 %}selected{% endif %}>本周</option>
+                <option value="-1" {% if offset == -1 %}selected{% endif %}>上周</option>
+                <option value="-2" {% if offset == -2 %}selected{% endif %}>上上周</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-query">查询</button>
+    </form>
 </div>
 
-<h3>{{ week_name }}数据</h3>
+<h3>{{ week_name }}{% if selected_class %} · {{ selected_class }}{% endif %}</h3>
 
 {% if records %}
 <table class="data-table">
@@ -45,24 +57,49 @@
 {% endif %}
 
 <style>
-.week-tabs {
-    display: flex;
-    gap: 8px;
+.filter-box {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
     margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
-.week-tabs a {
-    flex: 1;
-    padding: 12px;
-    text-align: center;
-    background: #f0f0f0;
-    border-radius: 8px;
-    text-decoration: none;
-    color: #666;
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+}
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.filter-row label {
     font-weight: 500;
+    color: #555;
 }
-.week-tabs a.active {
+.filter-row input, .filter-row select {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+}
+.filter-row input {
+    width: 140px;
+}
+.filter-row select {
+    min-width: 100px;
+}
+.btn-query {
+    padding: 10px 24px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
 }
 .data-table {
     width: 100%;
@@ -80,7 +117,6 @@
 .data-table th {
     background: #f8f9fa;
     font-weight: 500;
-    color: #333;
 }
 .data-table .score {
     color: #dc3545;
