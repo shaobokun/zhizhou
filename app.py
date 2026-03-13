@@ -54,10 +54,15 @@ def init_db():
 # 应用启动时初始化数据库
 init_db()
 
-def get_week_key():
-    """获取当前周的标识键"""
-    today = datetime.now()
-    return f"{today.year}-W{today.isocalendar()[1]}"
+def get_week_key(offset=0):
+    """获取周标识，offset=0本周，-1上周，-2上上周"""
+    today = datetime.date.today()
+    # 找到这周一
+    monday = today - datetime.timedelta(days=today.weekday())
+    # 根据偏移量调整
+    target_monday = monday + datetime.timedelta(weeks=offset)
+    return target_monday.strftime('%Y-W%W')
+
 
 def get_class_score(class_name):
     """计算班级当前周的总分"""
