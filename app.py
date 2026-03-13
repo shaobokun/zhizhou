@@ -141,6 +141,7 @@ def student():
         return redirect(url_for('index'))
     
     success = False
+    
     if request.method == 'POST':
         class_name = request.form.get('class_name', '').strip()
         student_name = request.form.get('student_name', '').strip()
@@ -148,24 +149,26 @@ def student():
         score = request.form.get('score', '0').strip()
         weekday = request.form.get('weekday', '周一').strip()
         
-        if class_name and student_name and reason and score:
-            try:
-                score_val = int(score)
-                if score_val > 0:
-                    conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute('''
-                        INSERT INTO deductions (class_name, student_name, reason, score, week, weekday, time)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                    ''', (class_name, student_name, reason, score_val, 
-                          get_week_key(), weekday, datetime.now().strftime('%Y-%m-%d %H:%M')))
-                    conn.commit()
-                    conn.close()
-                    success = True
-            except ValueError:
-                pass
+        try:
+            score_val = int(score)
+        except:
+            score_val = 0
+        
+        week_key = get_week_key(0)
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO deductions (class_name, student_name, reason, score, weekday, week, time)
+            VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+        ''', (class_name, student_name, reason, score_val, weekday, week_key))
+        conn.commit()
+        conn.close()
+        
+        success = True
     
     return render_template('student.html', success=success)
+
 
 # 老师 - 班级查询
 @app.route('/teacher', methods=['GET', 'POST'])
