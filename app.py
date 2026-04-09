@@ -8,8 +8,7 @@ app = Flask(__name__)
 app.secret_key = 'duty-management-secret-key'
 
 # 邀请码
-INVITE_CODE = 'zkqy-zz@2026-start'
-
+INVITE_CODE = 'qiyuan@565new'
 # 数据库配置
 DATABASE = '/app/data/duty_system.db'
 
@@ -150,9 +149,11 @@ def student():
         weekday = request.form.get('weekday', '周一').strip()
         
         try:
-            score_val = int(score)
+            # 改为 float，并四舍五入保留一位小数
+            score_val = round(float(score), 1)
         except:
-            score_val = 0
+            score_val = 0.0
+
         
         week_key = get_week_key(0)
         
@@ -171,6 +172,7 @@ def student():
 
 
 # 老师 - 班级查询
+# 老师 - 班级查询
 @app.route('/teacher', methods=['GET', 'POST'])
 def teacher():
     if not session.get('verified'):
@@ -181,9 +183,7 @@ def teacher():
         offset = int(offset)
     except:
         offset = 0
-    
-    selected_class = request.args.get('class', '').strip()
-    
+        
     if offset == 0:
         week_name = '本周'
     elif offset == -1:
@@ -192,40 +192,41 @@ def teacher():
         week_name = '上上周'
     else:
         week_name = '第' + str(offset) + '周'
-    
+        
     week_key = get_week_key(offset)
+    
+    # 【关键修改】：只有当 URL 里有 class 参数时，才认为是在“查询”
+    selected_class = request.args.get('class', '').strip()
+    is_searching = 'class' in request.args 
     
     conn = get_db()
     cursor = conn.cursor()
     
-    if selected_class:
-        cursor.execute('''
-            SELECT class_name, student_name, reason, score, weekday, time 
-            FROM deductions WHERE week = ? AND class_name = ?
-            ORDER BY time
-        ''', (week_key, selected_class))
-    else:
-        cursor.execute('''
-            SELECT class_name, student_name, reason, score, weekday, time 
-            FROM deductions WHERE week = ?
-            ORDER BY time
-        ''', (week_key,))
-    
-    rows = cursor.fetchall()
-    
+    rows = []
     total = 0
-    for r in rows:
-        total = total + r['score']
     
+    # 只有确实在查询，且班级名不为空，才去数据库拿数据
+    if is_searching and selected_class:
+        cursor.execute('''
+            SELECT class_name, student_name, reason, score, weekday, time 
+            FROM deductions WHERE week = ? AND class_name = ? ORDER BY time 
+        ''', (week_key, selected_class))
+        rows = cursor.fetchall()
+        for r in rows:
+            total = total + r['score']
+            
     conn.close()
     
+    # 把 is_searching 传给前端，告诉前端要不要显示表格
     return render_template('teacher.html', 
-        records=rows, 
-        week_name=week_name, 
-        offset=offset, 
-        total=total,
-        selected_class=selected_class
-    )
+                           records=rows, 
+                           week_name=week_name, 
+                           offset=offset, 
+                           total=total, 
+                           selected_class=selected_class,
+                           is_searching=is_searching # 新增这个变量
+                           )
+
 
 # 总表查看（支持历史周次）
 @app.route('/summary')
@@ -303,8 +304,10 @@ def edit_record(record_id):
         weekday = request.form.get('weekday', '周一').strip()
         
         try:
-            score_val = int(score)
+            # 改为 float，并四舍五入保留一位小数
+            score_val = round(float(score), 1)
             cursor.execute('''
+
                 UPDATE deductions 
                 SET class_name = ?, student_name = ?, reason = ?, score = ?, weekday = ?
                 WHERE id = ?

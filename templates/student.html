@@ -7,7 +7,7 @@
 <form method="POST" class="form-card">
     <div class="form-group">
         <label>班级名称</label>
-        <input type="text" name="class_name" placeholder="如：七年级1班" required>
+        <input type="text" name="class_name" placeholder="如：初一1班" required>
     </div>
     
     <div class="form-group">
@@ -22,7 +22,8 @@
     
     <div class="form-group">
         <label>扣分</label>
-        <input type="number" name="score" placeholder="输入分数" min="1" required>
+        <input type="number" name="score" step="0.1" inputmode="decimal" placeholder="例如：0.5">
+
     </div>
     
     <div class="form-group">

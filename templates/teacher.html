@@ -22,8 +22,7 @@
 </div>
 
 <h3>{{ week_name }}{% if selected_class %} · {{ selected_class }}{% endif %}</h3>
-
-{% if records %}
+{% if selected_class %}
 <table class="data-table">
     <thead>
         <tr>
@@ -52,7 +51,7 @@
 </div>
 {% else %}
 <div class="no-data">
-    <p>暂无数据</p>
+    <p>请输入班级后查看或该班级暂无扣分记录</p>
 </div>
 {% endif %}
 
